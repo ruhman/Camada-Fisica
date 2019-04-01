@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #####################################################
 # Camada Física da Computação
-# Carareto
-# 17/02/2018
+#Carareto
+#17/02/2018
 #  Camada de Enlace
 ####################################################
 
@@ -14,8 +14,6 @@ import time
 import threading
 
 # Class
-
-
 class TX(object):
     """ This class implements methods to handle the transmission
         data over the p2p fox protocol
@@ -24,12 +22,13 @@ class TX(object):
     def __init__(self, fisica):
         """ Initializes the TX class
         """
-        self.fisica = fisica
-        self.buffer = bytes(bytearray())
-        self.transLen = 0
-        self.empty = True
+        self.fisica      = fisica
+        self.buffer      = bytes(bytearray())
+        self.transLen    = 0
+        self.empty       = True
         self.threadMutex = False
-        self.threadStop = False
+        self.threadStop  = False
+
 
     def thread(self):
         """ TX thread, to send data in parallel with the code
@@ -71,9 +70,9 @@ class TX(object):
         of transmission, this erase all content of the buffer
         in order to save the new value.
         """
-        self.transLen = 0
+        self.transLen   = 0
         self.buffer = data
-        self.threadMutex = True
+        self.threadMutex  = True
 
     def getBufferLen(self):
         """ Return the total size of bytes in the TX buffer
@@ -83,9 +82,43 @@ class TX(object):
     def getStatus(self):
         """ Return the last transmission size
         """
+        #print("O tamanho transmitido. Impressao fora do thread {}" .format(self.transLen))
         return(self.transLen)
+        
 
     def getIsBussy(self):
         """ Return true if a transmission is ongoing
         """
         return(self.threadMutex)
+
+    def cria_package(self, payload, tipo, n_pacote, total_pacotes, pacote_esperado):
+        #pega os dados e empacota com HEAD, EOP e byte Stuffing
+
+        byte_stuff = bytes.fromhex("AA")
+        eop = bytes.fromhex("FF FE FD FC")
+        payload_size = len(payload)
+
+        for i in range(len(payload)):
+
+            if payload[i:i+4] == eop:
+                p1 = payload[0:i]
+                p2 = byte_stuff + payload[i:]
+                payload = p1 + p2
+
+        msg_type = (tipo).to_bytes(1, byteorder = "big")
+        msg_size = (payload_size).to_bytes(3, byteorder = "big")
+        msg_n = (n_pacote).to_bytes(1, byteorder = "big")
+        total_n = (total_pacotes).to_bytes(1, byteorder = "big")
+        pacote_e = (pacote_esperado).to_bytes(1, byteorder = "big")
+        head = msg_type + msg_size + msg_n + total_n + pacote_e
+        package = head + payload + eop
+        overhead = len(package) / len(payload)
+        print("OverHead:{0}".format(overhead))
+        print(len(payload))
+        return package
+        
+
+
+        
+        
+
