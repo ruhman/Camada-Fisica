@@ -12,6 +12,7 @@ print("comecou")
 
 from enlace import *
 import time
+from PIL import Image
 from array import array
 
 # voce deverá descomentar e configurar a porta com através da qual ira fazer a
@@ -22,7 +23,7 @@ from array import array
 # se estiver usando windows, o gerenciador de dispositivos informa a porta
 
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-serialName = "/dev/cu.usbmodem14401"  # Mac    (variacao de)
+serialName = "/dev/cu.usbmodem14101"  # Mac    (variacao de)
 # serialName = "COM3"                  # Windows(variacao de)
 baudrate = 115200
 
@@ -40,16 +41,18 @@ def main():
     # verificar que a comunicação foi aberta
     print("comunicação aberta")
 
+    # Atualiza dados da transmissão
+    txSize = com.tx.getStatus()
+
     # Faz a recepção dos dados
 
     print("Recebendo dados .... ")
+    bytesSeremLidos = com.rx.getBufferLen()
     rxBuffer, nRx = com.getData()
     x = open('teste.png', 'wb')
     x.write(rxBuffer)
     x.close()
-
-    # log
-    print("Lido              {0} bytes ".format(nRx))
+    print(rxBuffer)
 
     # Encerra comunicação
     print("-------------------------")
